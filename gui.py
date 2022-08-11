@@ -8,11 +8,15 @@ class Grid:
     def __init__(self):
         self.properties = properties
 
-    def draw(self,surface, players, actions, turn, canEnd, myId, houseData, totalHouses, totalHotels, mortgageData):
+    def draw(self, surface, players, properties, actions, turn, canEnd, myId, houseData, totalHouses, totalHotels, mortgageData):
         lfont = pygame.font.Font('freesansbold.ttf', 20)
 
         # draw each property
         for property in self.properties:
+            if len(properties) == 0:
+                propName = ""
+            else:
+                propName = properties[property.id]["name"]
             owned = False
             ownedSet = False
             borderCol = (0, 0, 0)
@@ -24,7 +28,7 @@ class Grid:
                         borderCol = player["color"]
                     if all(x in player_properties for x in property.set):
                         ownedSet = True
-            property.draw(surface, owned, ownedSet, borderCol, property.id in mortgageData)
+            property.draw(surface, propName, owned, ownedSet, borderCol, property.id in mortgageData)
         # draw houses on each property
         for housedata in houseData:
             property = self.properties[housedata["id"]]

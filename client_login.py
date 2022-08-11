@@ -10,7 +10,7 @@ class login_gui:
 
     def draw(self, surface):
         lfont = pygame.font.Font('freesansbold.ttf',20)
-        textInPos(surface, "Enter a password (remember this, it is used to reconnect if you get disconnected)", lfont, black, 100, 50)
+        textInPos(surface, "Enter your name (remember this, it is used to reconnect if you get disconnected)", lfont, black, 100, 50)
         pygame.draw.rect(surface, black, [100, 100, 600, 100], 2)
 
         text_in_box(surface, "Connect", lfont, black, 100, 220, 100, 75)

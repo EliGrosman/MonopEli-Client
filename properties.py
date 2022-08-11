@@ -1,4 +1,3 @@
-from cmath import e
 import pygame
 from drawing_functions import *
 from constants import *
@@ -188,7 +187,7 @@ class Property():
                 return True
         return False
                         
-    def draw(self, surface, owned, ownedSet, borderCol, mortgaged):                                      
+    def draw(self, surface, name, owned, ownedSet, borderCol, mortgaged):                                      
         lfont = pygame.font.Font('freesansbold.ttf',10)
 
         surface.fill(self.color, rect = [self.boxLeft, self.boxTop, self.boxWidth, self.boxHeight])
@@ -199,7 +198,7 @@ class Property():
             pygame.draw.line(surface, (140, 0, 0), (self.left, self.top), (self.left + self.width, self.top + self.height), 3)
             pygame.draw.line(surface, (140, 0, 0), (self.left, self.top + self.height), (self.left + self.width, self.top), 3)
 
-        chanceTextSplit(surface, self.name, self.textLength, 10, lfont, black, self.textX, self.textY, self.textWidth, self.textHeight)
+        chanceTextSplit(surface, name, self.textLength, 10, lfont, black, self.textX, self.textY, self.textWidth, self.textHeight)
 
         
     def drawHouses(self, surface, houses):
@@ -402,7 +401,7 @@ class special_cards():
                 return True
         return False
         
-    def draw(self, surface, owned, ownedSet, borderCol, mortgaged):                                    
+    def draw(self, surface, name,  owned, ownedSet, borderCol, mortgaged):                                    
         lfont = pygame.font.Font('freesansbold.ttf',10)
     
         surface.fill(black, rect = [self.boxLeft, self.boxTop, self.boxWidth, self.boxHeight])
@@ -412,7 +411,7 @@ class special_cards():
         if mortgaged:
             pygame.draw.line(surface, (140, 0, 0), (self.left, self.top), (self.left + self.width, self.top + self.height), 3)
             pygame.draw.line(surface, (140, 0, 0), (self.left, self.top + self.height), (self.left + self.width, self.top), 3)
-        chanceTextSplit(surface, self.name, self.textLength, 10, lfont, black, self.textX, self.textY, self.textWidth, self.textHeight)
+        chanceTextSplit(surface, name, self.textLength, 10, lfont, black, self.textX, self.textY, self.textWidth, self.textHeight)
         
 class extra_card():
     def __init__(self,name,id,type,locx,locy,x1,y1,x2,y2):
@@ -551,9 +550,9 @@ class extra_card():
     def canBuy(self, money):
         return False
         
-    def draw(self, surface, owned, ownedSet, borderCol, mortgaged):
+    def draw(self, surface, name, owned, ownedSet, borderCol, mortgaged):
         lfont = pygame.font.Font('freesansbold.ttf',10)
     
         pygame.draw.rect(surface, black, [self.left, self.top, self.width, self.height], 1)
-        chanceTextSplit(surface, self.name, self.textLength, 10, lfont, black, self.textX, self.textY, self.textWidth, self.textHeight)
+        chanceTextSplit(surface, name, self.textLength, 10, lfont, black, self.textX, self.textY, self.textWidth, self.textHeight)
 

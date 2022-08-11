@@ -226,7 +226,7 @@ while not running:
                password = password[:-1]
             else:
                 char = event.unicode
-                if (char in ascii_letters or char in digits) and len(password) <= 20:
+                if (char in ascii_letters or char in digits) and len(password) <= 10:
                     password += char
 
         if event.type == pygame.MOUSEBUTTONDOWN and pygame.mouse.get_pressed()[0]:
@@ -442,7 +442,7 @@ while running:
     # draw white background
     surface.fill((255,255,255))
     # main draw function ()
-    grid.draw(surface, players, actions, (not rolled and turn), canEnd, myId, houseData, totalHouses, totalHotels, mortgageData)
+    grid.draw(surface, players, propertyData, actions, (not rolled and turn), canEnd, myId, houseData, totalHouses, totalHotels, mortgageData)
 
     # draw card for landed on property in top right
     drawCard(surface, properties[position], chanceData["chanceText"])
