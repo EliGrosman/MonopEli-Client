@@ -16,6 +16,15 @@ from property_info import properties
 HOST='127.0.0.1'
 PORT=9009
 
+def resource_path(relative_path):
+    try:
+    # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
 
 
 
@@ -174,7 +183,7 @@ def receive_data():
                 
                 # whenever player buys a house or mortgages property. updates that property's info
                 elif(data_in['type'] == "buyMortUpdate"):
-                    buildingMortgage = data_in["name"]
+                    buildingMortgage = propertyData[data_in["id"]]["name"]
 
                     tempPropID = data_in["id"]
                     tempHouses = data_in["houses"]
@@ -202,6 +211,8 @@ def receive_data():
 
 
 # login
+changingName = True
+changingIP = False
 while not running:
     
     for event in pygame.event.get():
@@ -223,15 +234,20 @@ while not running:
                 except :
                     pass
             elif event.key == pygame.K_BACKSPACE:
-               password = password[:-1]
+                if changingName:
+                    password = password[:-1]
+                if changingIP:
+                    HOST = HOST[:-1]
             else:
                 char = event.unicode
-                if (char in ascii_letters or char in digits) and len(password) <= 10:
+                if (char in ascii_letters or char in digits) and len(password) <= 10 and changingName:
                     password += char
+                if (char in digits or char == '.') and changingIP:
+                    HOST += char
 
         if event.type == pygame.MOUSEBUTTONDOWN and pygame.mouse.get_pressed()[0]:
             mouse = pygame.mouse.get_pos()
-            if mouseInBox(mouse, 100, 220, 100, 75):
+            if mouseInBox(mouse, 100, 380, 100, 75):
                 try:
                     sock.connect((HOST,PORT))
                     connection_established=True
@@ -241,13 +257,23 @@ while not running:
                     running = True
                     create_thread(receive_data)
                 except :
-                    pass           
+                    pygame.display.quit()
+                    pygame.quit()
+                    sys.exit() 
+            if mouseInBox(mouse, 100, 250, 600, 100):
+                changingIP = True
+                changingName = False
+            if mouseInBox(mouse, 100, 100, 600, 100):
+                changingIP = False
+                changingName = True
+
     
     surface.fill((255,255,255))
     login.draw(surface)
 
-    lfont = pygame.font.Font('freesansbold.ttf',20)
+    lfont = pygame.font.Font(resource_path("font.ttf"), 20)
     textInPos(surface, password, lfont, black, 110, 140)
+    textInPos(surface, HOST, lfont, black, 110, 290)
     pygame.display.flip()
     # run at 40 fps
     clock.tick(30)
@@ -288,7 +314,7 @@ while running:
                             canEnd = True
                             rolled = True
                     # end turn
-                    if canEnd and acknowledgedChance and acknowledgedOwed and tradeData["player1"] is None:
+                    if canEnd and tradeData["player1"] is None:
                         if mouse[0] >= buttonWindowLeft + 2*buttonMargin + buttonWidth and mouse[0] <= buttonWindowLeft + 2*buttonMargin + 2*buttonWidth and mouse[1] >= buttonWindowTop + buttonMargin and mouse[1] <= buttonWindowTop + buttonMargin + buttonHeight: 
                             send_data = {'type': 'endturn', 'player': player_id}
                             send_data = json.dumps(send_data)
@@ -306,6 +332,14 @@ while running:
                             chanceData = {"cardType": None, "chanceText": None, "chancePlayer": 0} 
                             tradeData = {"player1": None, "player2": None, "properties1": [], "properties2": [], "selectedProperties1": [], "selectedProperties2": [], "money1": None, "money2": None}
                             finishedBuy = True
+
+                            send_data = {'type': 'acknowledgeChance'}
+                            send_data = json.dumps(send_data)
+                            sock.sendall(bytes(send_data, encoding = "utf-8"))
+
+                            send_data = {'type': 'acknowledgeOwed'}
+                            send_data = json.dumps(send_data)
+                            sock.sendall(bytes(send_data, encoding = "utf-8"))
                     # buy window
                     if buydata["propname"] is not None and acknowledgedChance and acknowledgedOwed:
                         if mouse[0] >= buttonWindowLeft + 5 and mouse[0] <= buttonWindowLeft + 5 + buttonWidth and mouse[1] >= buttonWindowTop + 2.18*card_length and mouse[1] <= buttonWindowTop + 2.18*card_length + buttonHeight:
@@ -343,11 +377,9 @@ while running:
                             if mouse[0] >= prop.left and mouse[0] <= prop.left + prop.width and mouse[1] >= prop.top and mouse[1] <= prop.top + prop.height:
                                 if canBuyMortgage:
                                     tempCanBuild = True
-                                    buildingMortgage = prop.name
+                                    buildingMortgage = propertyData[prop.id]['name']
                                     if prop.type == PROPERTY:
-                                        for p in propertyData:
-                                            if p['name'] == prop.name:
-                                                tempHouses = p['houses']
+                                        tempHouses = propertyData[prop.id]['houses']
                                         tempBuildPrice = prop.buildCost
                                     else:
                                         tempHouses = 0
@@ -398,7 +430,7 @@ while running:
                             sock.sendall(bytes(send_data, encoding = "utf-8"))
                             
                     # jail window
-                    if players[myId - 1]["jail"]:
+                    if players[myId - 1]["jail"] and acknowledgedChance and acknowledgedOwed and players[myId - 1]["jailturns"] > 0:
                         # pay
                         if mouse[0] >= buttonWindowLeft + 5 and mouse[0] <= buttonWindowLeft + 5 + buttonWidth and mouse[1] >= buttonWindowTop + buttonWindowLength + 2.18*card_length and mouse[1] <= buttonWindowTop + buttonWindowLength + 2.18*card_length + buttonHeight/3:
                             send_data = {'type': 'getOutOfJail', 'id': myId, 'value': "pay"}
@@ -445,7 +477,8 @@ while running:
     grid.draw(surface, players, propertyData, actions, (not rolled and turn), canEnd, myId, houseData, totalHouses, totalHotels, mortgageData)
 
     # draw card for landed on property in top right
-    drawCard(surface, properties[position], chanceData["chanceText"])
+    if len(propertyData) > 0:
+        drawCard(surface, propertyData[position], chanceData["chanceText"])
 
     # if player can buy a property, display the buy window
     if not finishedBuy and not game_over and acknowledgedChance and acknowledgedOwed and not jail and not simulating:
@@ -503,8 +536,8 @@ while running:
         drawOwedWindow(surface, totalOwed)
     
     # if they're in jail, draw the jail window. (after chance and owed is acknowledged)
-    if actions["turn"] > 0 and players[myId - 1]["turn"] and players[myId - 1]["jail"] and acknowledgedChance and acknowledgedOwed and not game_over and not simulating:
-        drawJailWindow(surface, players[myId - 1]["jailCards"])
+    if actions["turn"] > 0 and players[myId - 1]["turn"] and players[myId - 1]["jail"] and players[myId - 1]["jailturns"] > 0 and acknowledgedChance and acknowledgedOwed and not game_over and not simulating:
+        drawJailWindow(surface, players[myId - 1]["jailCards"], propertyData[40]['name'])
 
     if turn and rolled:
         if players[myId - 1]['money'] < 0:

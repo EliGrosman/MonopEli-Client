@@ -1,6 +1,18 @@
 import pygame
 from drawing_functions import *
 from constants import *
+import os, sys
+
+def resource_path(relative_path):
+    try:
+    # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
+
 pygame.init()
 
 
@@ -188,7 +200,7 @@ class Property():
         return False
                         
     def draw(self, surface, name, owned, ownedSet, borderCol, mortgaged):                                      
-        lfont = pygame.font.Font('freesansbold.ttf',10)
+        lfont = pygame.font.Font(resource_path("font.ttf"),10)
 
         surface.fill(self.color, rect = [self.boxLeft, self.boxTop, self.boxWidth, self.boxHeight])
         pygame.draw.rect(surface, black, [self.left, self.top, self.width, self.height], 1)
@@ -402,7 +414,7 @@ class special_cards():
         return False
         
     def draw(self, surface, name,  owned, ownedSet, borderCol, mortgaged):                                    
-        lfont = pygame.font.Font('freesansbold.ttf',10)
+        lfont = pygame.font.Font(resource_path("font.ttf"),10)
     
         surface.fill(black, rect = [self.boxLeft, self.boxTop, self.boxWidth, self.boxHeight])
         pygame.draw.rect(surface, black, [self.left, self.top, self.width, self.height], 1)
@@ -551,7 +563,7 @@ class extra_card():
         return False
         
     def draw(self, surface, name, owned, ownedSet, borderCol, mortgaged):
-        lfont = pygame.font.Font('freesansbold.ttf',10)
+        lfont = pygame.font.Font(resource_path("font.ttf"),10)
     
         pygame.draw.rect(surface, black, [self.left, self.top, self.width, self.height], 1)
         chanceTextSplit(surface, name, self.textLength, 10, lfont, black, self.textX, self.textY, self.textWidth, self.textHeight)

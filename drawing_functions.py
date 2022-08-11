@@ -1,6 +1,17 @@
 from constants import *
 import pygame
 import json
+import os, sys
+
+def resource_path(relative_path):
+    try:
+    # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
 
 text_height = .15*card_length
 box_width = 3*card_breadth
@@ -59,50 +70,50 @@ def chanceTextSplit(surface, text, maxLineLength, sep, font, tc, x, y, l, h):
         text_in_box(surface, line, font,tc,x,y+i*sep,l,h)
 # darw card in the top right
 def drawCard(surface, property, chanceText):
-    lfont = pygame.font.Font('freesansbold.ttf',10)
+    lfont = pygame.font.Font(resource_path("font.ttf"),10)
     
 
-    if(property.type == PROPERTY):
-        surface.fill(property.color, rect = [13*card_breadth, 0, box_width, .25*card_length])
+    if(property["type"] == PROPERTY):
+        surface.fill(property["set"], rect = [13*card_breadth, 0, box_width, .25*card_length])
         pygame.draw.rect(surface, black, [13*card_breadth, 0, box_width, 2*card_length], 2)
-        text_in_box(surface, property.name, lfont, black, 13*card_breadth, 0, box_width, .25*card_length)
-        text_in_box(surface, f"Cost: ${property.cost}", lfont, black, 13*card_breadth, .3*card_length, box_width, text_height)
-        text_in_box(surface, f"Rent: ${property.rent[0]}", lfont, black, 13*card_breadth, .3*card_length+20, box_width, text_height)
-        text_in_box(surface, f"Rent with color set: ${property.monopolyRent}", lfont, black, 13*card_breadth, .4*card_length+20, box_width, text_height)
+        text_in_box(surface, property["name"], lfont, black, 13*card_breadth, 0, box_width, .25*card_length)
+        text_in_box(surface, f"Cost: ${property['cost']}", lfont, black, 13*card_breadth, .3*card_length, box_width, text_height)
+        text_in_box(surface, f"Rent: ${property['rent'][0]}", lfont, black, 13*card_breadth, .3*card_length+20, box_width, text_height)
+        text_in_box(surface, f"Rent with color set: ${property['mRent']}", lfont, black, 13*card_breadth, .4*card_length+20, box_width, text_height)
 
-        text_in_box(surface, f"With 1 house: {' '*(21-len(str(property.rent[1])))}${property.rent[1]}", lfont, black, 13*card_breadth, .6*card_length+20, box_width, text_height)
-        text_in_box(surface, f"With 2 houses: {' '*(19-len(str(property.rent[2])))}${property.rent[2]}", lfont, black, 13*card_breadth, .7*card_length+20, box_width, text_height)
-        text_in_box(surface, f"With 3 houses: {' '*(19-len(str(property.rent[3])))}${property.rent[3]}", lfont, black, 13*card_breadth, .8*card_length+20, box_width, text_height)
-        text_in_box(surface, f"With 1 hotel: {' '*(23-len(str(property.rent[4])))}${property.rent[4]}", lfont, black, 13*card_breadth, .9*card_length+20, box_width, text_height)
-        text_in_box(surface, f"Mortgage value: ${property.mortgage}", lfont, black, 13*card_breadth, 1.3*card_length+20, box_width, text_height)
-        text_in_box(surface, f"Houses cost: ${property.buildCost} each", lfont, black, 13*card_breadth, 1.5*card_length+20, box_width, text_height)
-        text_in_box(surface, f"Hotels, ${property.buildCost} plus 4 houses", lfont, black, 13*card_breadth, 1.7*card_length+20, box_width, text_height)
-    if(property.type == RAIL):
+        text_in_box(surface, f"With 1 house: {' '*(21-len(str(property['rent'][1])))}${property['rent'][1]}", lfont, black, 13*card_breadth, .6*card_length+20, box_width, text_height)
+        text_in_box(surface, f"With 2 houses: {' '*(19-len(str(property['rent'][2])))}${property['rent'][2]}", lfont, black, 13*card_breadth, .7*card_length+20, box_width, text_height)
+        text_in_box(surface, f"With 3 houses: {' '*(19-len(str(property['rent'][3])))}${property['rent'][3]}", lfont, black, 13*card_breadth, .8*card_length+20, box_width, text_height)
+        text_in_box(surface, f"With 1 hotel: {' '*(23-len(str(property['rent'][4])))}${property['rent'][4]}", lfont, black, 13*card_breadth, .9*card_length+20, box_width, text_height)
+        text_in_box(surface, f"Mortgage value: ${property['mortgageVal']}", lfont, black, 13*card_breadth, 1.3*card_length+20, box_width, text_height)
+        text_in_box(surface, f"Houses cost: ${property['buildCost']} each", lfont, black, 13*card_breadth, 1.5*card_length+20, box_width, text_height)
+        text_in_box(surface, f"Hotels, ${property['buildCost']} plus 4 houses", lfont, black, 13*card_breadth, 1.7*card_length+20, box_width, text_height)
+    if(property['type'] == RAIL):
         surface.fill(black, rect = [13*card_breadth, 0, box_width, .25*card_length])
         pygame.draw.rect(surface, black, [13*card_breadth, 0, box_width, 2*card_length], 2)
-        text_in_box(surface, property.name, lfont, (255, 255, 255), 13*card_breadth, 0, box_width, .25*card_length)
-        text_in_box(surface, f"Cost: ${property.cost}", lfont, black, 13*card_breadth, .3*card_length, box_width, text_height)
-        text_in_box(surface, f"Rent: {' '*(43-len(str(property.rent[0])))}${property.rent[0]}", lfont, black, 13*card_breadth, .3*card_length+20, box_width, text_height)
-        text_in_box(surface, f"If 2 R.R's are owned: {' '*(18-len(str(property.rent[1])))}${property.rent[1]}", lfont, black, 13*card_breadth, .5*card_length+20, box_width, text_height)
-        text_in_box(surface, f"If 3 R.R's are owned: {' '*(18-len(str(property.rent[2])))}${property.rent[2]}", lfont, black, 13*card_breadth, .7*card_length+20, box_width, text_height)
-        text_in_box(surface, f"If 4 R.R's are owned: {' '*(18-len(str(property.rent[3])))}${property.rent[3]}", lfont, black, 13*card_breadth, .9*card_length+20, box_width, text_height)
-        text_in_box(surface, f"Mortgage value: ${property.mortgage}", lfont, black, 13*card_breadth, 1.3*card_length+20, box_width, text_height)
-    if(property.type == UTILITY):
+        text_in_box(surface, property['name'], lfont, (255, 255, 255), 13*card_breadth, 0, box_width, .25*card_length)
+        text_in_box(surface, f"Cost: ${property['cost']}", lfont, black, 13*card_breadth, .3*card_length, box_width, text_height)
+        text_in_box(surface, f"Rent: {' '*(43-len(str(property['rent'][0])))}${property['rent'][0]}", lfont, black, 13*card_breadth, .3*card_length+20, box_width, text_height)
+        text_in_box(surface, f"If 2 R.R's are owned: {' '*(18-len(str(property['rent'][1])))}${property['rent'][1]}", lfont, black, 13*card_breadth, .5*card_length+20, box_width, text_height)
+        text_in_box(surface, f"If 3 R.R's are owned: {' '*(18-len(str(property['rent'][2])))}${property['rent'][2]}", lfont, black, 13*card_breadth, .7*card_length+20, box_width, text_height)
+        text_in_box(surface, f"If 4 R.R's are owned: {' '*(18-len(str(property['rent'][3])))}${property['rent'][3]}", lfont, black, 13*card_breadth, .9*card_length+20, box_width, text_height)
+        text_in_box(surface, f"Mortgage value: ${property['mortgageVal']}", lfont, black, 13*card_breadth, 1.3*card_length+20, box_width, text_height)
+    if(property['type'] == UTILITY):
         surface.fill(black, rect = [13*card_breadth, 0, box_width, .25*card_length])
         pygame.draw.rect(surface, black, [13*card_breadth, 0, box_width, 2*card_length], 2)
-        text_in_box(surface, property.name, lfont, (255, 255, 255), 13*card_breadth, 0, box_width, .25*card_length)
-        text_in_box(surface, f"Cost: ${property.cost}", lfont, black, 13*card_breadth, .3*card_length, box_width, text_height)
+        text_in_box(surface, property['name'], lfont, (255, 255, 255), 13*card_breadth, 0, box_width, .25*card_length)
+        text_in_box(surface, f"Cost: ${property['cost']}", lfont, black, 13*card_breadth, .3*card_length, box_width, text_height)
         text_in_box(surface, f"If one 'Utility' is owned, rent is", lfont, black, 13*card_breadth, .3*card_length+20, box_width, text_height)
         text_in_box(surface, f"4 times ammount shown on dice", lfont, black, 13*card_breadth, .4*card_length+20, box_width, text_height)
         
         text_in_box(surface, f"If both 'Utilities' are owned, rent", lfont, black, 13*card_breadth, .7*card_length+20, box_width, text_height)
         text_in_box(surface, f"is 10 times amount shown on dice", lfont, black, 13*card_breadth, .8*card_length+20, box_width, text_height)
 
-        text_in_box(surface, f"Mortgage value: ${property.mortgage}", lfont, black, 13*card_breadth, 1.3*card_length+20, box_width, text_height)     
+        text_in_box(surface, f"Mortgage value: ${property['mortgageVal']}", lfont, black, 13*card_breadth, 1.3*card_length+20, box_width, text_height)     
 
 # draw chance/chest card the player landed on in the middle
 def drawChanceCommunity(surface, cardType, chanceText, playerId, chancePlayer):
-    lfont = pygame.font.Font('freesansbold.ttf',10)
+    lfont = pygame.font.Font(resource_path("font.ttf"),10)
 
     pygame.draw.rect(surface, (255, 255, 255), [buttonWindowLeft, buttonWindowTop + buttonWindowLength+ 1.5*card_length, buttonWindowWidth, buttonWindowLength])
     pygame.draw.rect(surface, black, [buttonWindowLeft, buttonWindowTop  +buttonWindowLength+1.5*card_length, buttonWindowWidth, buttonWindowLength], 2)
@@ -119,7 +130,7 @@ def drawChanceCommunity(surface, cardType, chanceText, playerId, chancePlayer):
 
 # draw how much the player owes
 def drawOwedWindow(surface, totalOwed):
-    lfont = pygame.font.Font('freesansbold.ttf',10)
+    lfont = pygame.font.Font(resource_path("font.ttf"),10)
 
     pygame.draw.rect(surface, (255, 255, 255), [buttonWindowLeft, buttonWindowTop + buttonWindowLength+ 1.5*card_length, buttonWindowWidth, buttonWindowLength])
     pygame.draw.rect(surface, black, [buttonWindowLeft, buttonWindowTop  +buttonWindowLength+1.5*card_length, buttonWindowWidth, buttonWindowLength], 2)
@@ -130,24 +141,24 @@ def drawOwedWindow(surface, totalOwed):
     text_in_box(surface, "Accept", lfont, black, buttonWindowLeft + 15, buttonWindowTop +buttonWindowLength+ 2.18*card_length, buttonWindowWidth - 30, buttonHeight/3)
 
 # draw jail window. Pay to get out, use jail card
-def drawJailWindow(surface, jailCards):
-    lfont = pygame.font.Font('freesansbold.ttf',10)
+def drawJailWindow(surface, jailCards, jailname):
+    lfont = pygame.font.Font(resource_path("font.ttf"),10)
 
     pygame.draw.rect(surface, (255, 255, 255), [buttonWindowLeft, buttonWindowTop + buttonWindowLength+ 1.5*card_length, buttonWindowWidth, buttonWindowLength])
     pygame.draw.rect(surface, black, [buttonWindowLeft, buttonWindowTop  +buttonWindowLength+1.5*card_length, buttonWindowWidth, buttonWindowLength], 2)
 
-    text_in_box(surface, "Pay $50 to get out of jail?", lfont, black, buttonWindowLeft, buttonWindowTop + buttonWindowLength + 1.5*card_length - 50, buttonWindowWidth, buttonWindowLength)
+    text_in_box(surface, "Pay $50 to get out of " + jailname + "?", lfont, black, buttonWindowLeft, buttonWindowTop + buttonWindowLength + 1.5*card_length - 50, buttonWindowWidth, buttonWindowLength)
 
     pygame.draw.rect(surface, black, [buttonWindowLeft + 5, buttonWindowTop +buttonWindowLength+ 2.18*card_length, buttonWidth, buttonHeight/3], 2)
     text_in_box(surface, "Accept", lfont, black, buttonWindowLeft + 5, buttonWindowTop +buttonWindowLength+ 2.18*card_length, buttonWidth, buttonHeight/3)
 
     pygame.draw.rect(surface, black, [buttonWindowLeft + 5 + buttonWidth + 20, buttonWindowTop +buttonWindowLength+ 2.18*card_length, buttonWidth, buttonHeight/3], 2)
-    text_in_box(surface, "Use get out of jail card" if jailCards > 0 else "No get out of jail cards", lfont, black, buttonWindowLeft + 5 + buttonWidth + 20, buttonWindowTop +buttonWindowLength+ 2.18*card_length, buttonWidth, buttonHeight/3)
+    text_in_box(surface, "Use get out of " + jailname + " card" if jailCards > 0 else "No get out of " + jailname + " cards", lfont, black, buttonWindowLeft + 5 + buttonWidth + 20, buttonWindowTop +buttonWindowLength+ 2.18*card_length, buttonWidth, buttonHeight/3)
 
 # draw player name, money, jail cards, and properties on the right side of the screen
-def drawPlayerStuff(surface, player, myId, mortgagedProperties):
-    lfont = pygame.font.Font('freesansbold.ttf', 20)
-    lfont_small = pygame.font.Font('freesansbold.ttf', 15)
+def drawPlayerStuff(surface, player, myId, mortgagedProperties, jailname):
+    lfont = pygame.font.Font(resource_path("font.ttf"), 20)
+    lfont_small = pygame.font.Font(resource_path("font.ttf"), 15)
 
     if(player["player"] == 1):
         left = 13*card_breadth
@@ -174,7 +185,7 @@ def drawPlayerStuff(surface, player, myId, mortgagedProperties):
     pygame.draw.circle(surface, player["color"], (left + 15, top + 15), 10)
     textInPos(surface, str(player["name"]), lfont, black, left + 25, top + 7.5)
     textInPos(surface, "Balance: " + str(player["money"]), lfont, black, left + 5, top + 25)
-    textInPos(surface, "Get out of jail cards: " + str(player["jailCards"]), lfont_small, black, left + 5, top + 42)
+    textInPos(surface, "Get out of " + jailname + " cards: " + str(player["jailCards"]), lfont_small, black, left + 5, top + 42)
 
     if player["player"] == myId:
         pygame.draw.rect(surface, black, [left + 5, top + 55, 1.3*buttonWidth, buttonHeight-10], 2)
@@ -211,8 +222,8 @@ def drawPlayerProperties(surface, playerProperties, mortgagedProperties, left, t
 
 #  draw turn/past actions in the top right
 def drawActions(surface, turnNum, playerName, roll1, roll2, landedOn, lines):
-    lfont = pygame.font.Font('freesansbold.ttf',20)
-    lfont15 = pygame.font.Font('freesansbold.ttf', 15)
+    lfont = pygame.font.Font(resource_path("font.ttf"),20)
+    lfont15 = pygame.font.Font(resource_path("font.ttf"), 15)
     left = 13*card_breadth + box_width + 15
     top = 0
     width = 5*card_breadth
@@ -231,7 +242,7 @@ def drawActions(surface, turnNum, playerName, roll1, roll2, landedOn, lines):
 
 # draw game over and winner name
 def drawGameOver(surface, winner):
-    lfont = pygame.font.Font('freesansbold.ttf',50)
+    lfont = pygame.font.Font(resource_path("font.ttf"),50)
     pygame.draw.rect(surface, (255, 255, 255), [buttonWindowLeft, buttonWindowTop, buttonWindowWidth + 5, buttonWindowLength + 5])
     text_in_box(surface, "Game Over!", lfont, black, buttonWindowLeft, buttonWindowTop, buttonWindowWidth, buttonWindowLength)
     text_in_box(surface, "Winner: " + str(winner), lfont, black, buttonWindowLeft, buttonWindowTop + 45, buttonWindowWidth, buttonWindowLength)
@@ -239,7 +250,7 @@ def drawGameOver(surface, winner):
 # draw window for buying property they landed on
 def drawBuyWindow(surface, propname, cost):
     if propname is not None:
-        lfont = pygame.font.Font('freesansbold.ttf',25)
+        lfont = pygame.font.Font(resource_path("font.ttf"),25)
         pygame.draw.rect(surface, (255, 255, 255), [buttonWindowLeft, buttonWindowTop + 1.5*card_length, buttonWindowWidth, buttonWindowLength])
         pygame.draw.rect(surface, black, [buttonWindowLeft, buttonWindowTop + 1.5*card_length, buttonWindowWidth, buttonWindowLength], 2)
         text_in_box(surface, "Would you like to buy", lfont, black, buttonWindowLeft, buttonWindowTop + 1.5*card_length - 40, buttonWindowWidth, buttonWindowLength)
@@ -254,7 +265,7 @@ def drawBuyWindow(surface, propname, cost):
 
 # confirm declare bankruptcy
 def drawBankruptcyWindow(surface):
-    lfont = pygame.font.Font('freesansbold.ttf',23)
+    lfont = pygame.font.Font(resource_path("font.ttf"),23)
     pygame.draw.rect(surface, (255, 255, 255), [buttonWindowLeft, buttonWindowTop + 1.5*card_length, buttonWindowWidth, buttonWindowLength])
     pygame.draw.rect(surface, black, [buttonWindowLeft, buttonWindowTop + 1.5*card_length, buttonWindowWidth, buttonWindowLength], 2)
     text_in_box(surface, "Are you sure you want", lfont, black, buttonWindowLeft, buttonWindowTop + 1.5*card_length - 40, buttonWindowWidth, buttonWindowLength)
@@ -280,8 +291,8 @@ def drawTradeWindowThirdParty(surface, tradeData, p1Money, p2Money, mortgagedPro
     money = [str(money1), str(money2)]
     currentMoney = [p1Money, p2Money]
 
-    lfont = pygame.font.Font('freesansbold.ttf',25)
-    lfont2 = pygame.font.Font('freesansbold.ttf',18)
+    lfont = pygame.font.Font(resource_path("font.ttf"),25)
+    lfont2 = pygame.font.Font(resource_path("font.ttf"),18)
     pygame.draw.rect(surface, (255, 255, 255), [card_length + 20, buttonWindowTop + 1.5*card_length, 1.87*buttonWindowWidth, 2.8*buttonWindowLength])
     pygame.draw.rect(surface, black, [card_length + 20, buttonWindowTop + 1.5*card_length, 1.87*buttonWindowWidth, 2.8*buttonWindowLength], 2)
     miniBoxWidth = 23
@@ -315,8 +326,8 @@ def drawTradeWindow(surface, tradeData, myId, p1Money, p2Money, sock, mortgagedP
     money = [str(money1), str(money2)]
     currentMoney = [p1Money, p2Money]
 
-    lfont = pygame.font.Font('freesansbold.ttf',25)
-    lfont2 = pygame.font.Font('freesansbold.ttf',18)
+    lfont = pygame.font.Font(resource_path("font.ttf"),25)
+    lfont2 = pygame.font.Font(resource_path("font.ttf"),18)
     pygame.draw.rect(surface, (255, 255, 255), [card_length + 20, buttonWindowTop + 1.5*card_length, 1.87*buttonWindowWidth, 2.8*buttonWindowLength])
     pygame.draw.rect(surface, black, [card_length + 20, buttonWindowTop + 1.5*card_length, 1.87*buttonWindowWidth, 2.8*buttonWindowLength], 2)
     miniBoxWidth = 23
@@ -479,13 +490,13 @@ def drawTradeWindow(surface, tradeData, myId, p1Money, p2Money, sock, mortgagedP
     
 # draw message if player can't end because they don't have enough money
 def drawCantEndText(surface):
-    lfont = pygame.font.Font('freesansbold.ttf',20)
+    lfont = pygame.font.Font(resource_path("font.ttf"),20)
     chanceTextSplit(surface, "You cannot end your turn until you mortgage property or declare bankruptcy", 50, 15, lfont, black, buttonWindowLeft, buttonWindowTop + buttonWindowLength, buttonWindowWidth, buttonWindowLength)
 
 # draw roll/end turn buttons
 def drawButtons(surface, canRoll, canEnd):
-    lfont = pygame.font.Font('freesansbold.ttf',20)
-    lfont2 = pygame.font.Font('freesansbold.ttf',50)
+    lfont = pygame.font.Font(resource_path("font.ttf"),20)
+    lfont2 = pygame.font.Font(resource_path("font.ttf"),50)
     text_in_box(surface, "Your Turn!" if canRoll else "", lfont2, red, buttonWindowLeft, buttonWindowTop + card_length, buttonWindowWidth, buttonWindowLength)
     pygame.draw.rect(surface, black, [buttonWindowLeft, buttonWindowTop, buttonWindowWidth, buttonWindowLength], 2)
 
@@ -503,7 +514,7 @@ def drawButtons(surface, canRoll, canEnd):
 
 # draw building / mortgaging window if they click a property
 def drawBuildMortgage(surface, propName, buyType, mortType, numHouses, buildCost, mortVal):   
-    lfont = pygame.font.Font('freesansbold.ttf',13)
+    lfont = pygame.font.Font(resource_path("font.ttf"),13)
 
     pygame.draw.rect(surface, black, [buttonWindowLeft, buttonWindowTop + buttonWindowLength + 1.5*card_length, buttonWindowWidth, buttonWindowLength], 2)
     text_in_box(surface, propName, lfont, black, buttonWindowLeft, buttonWindowTop + buttonWindowLength + 1.25*card_length, buttonWindowWidth, buttonWindowLength)
