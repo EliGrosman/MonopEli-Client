@@ -209,7 +209,6 @@ def receive_data():
             print('Remote connection terminated')
             connection_established=False
             grid.game_over=True
-            break
 
 
 # login
