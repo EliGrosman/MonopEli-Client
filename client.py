@@ -42,6 +42,8 @@ sock=socket.socket(socket.AF_INET,socket.SOCK_STREAM)
 
 surface=pygame.display.set_mode((display_width,display_height))
 pygame.display.set_caption('MonopEli - Client')
+icon = pygame.image.load(resource_path("icon.ico"))
+pygame.display.set_icon(icon)
 
 player_id = 0
 players = []

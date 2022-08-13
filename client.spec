@@ -8,7 +8,7 @@ a = Analysis(
     ['client.py'],
     pathex=[],
     binaries=[],
-    datas=[('./*.ttf', './')],
+    datas=[("./*.ico", "./"), ("./*.ttf", "./")],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -41,4 +41,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
+    icon='icon.ico',
 )
