@@ -8,7 +8,7 @@ def resource_path(relative_path):
     # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = sys._MEIPASS
     except Exception:
-        base_path = os.path.abspath(".")
+        base_path = os.path.abspath("./assets")
 
     return os.path.join(base_path, relative_path)
 
@@ -68,12 +68,60 @@ def chanceTextSplit(surface, text, maxLineLength, sep, font, tc, x, y, l, h):
         line = lines[i]
 
         text_in_box(surface, line, font,tc,x,y+i*sep,l,h)
+
+def propTextSplit(surface, text, maxLineLength, sep, font, tc, x, y, l, h):
+    splitLines = text.split(' ')
+    # print(splitLines)
+    lines = []
+
+    cur = splitLines[0]
+    del splitLines[0]
+
+    currentLine = cur
+    while len(splitLines) > 0:
+        next = splitLines[0]
+        del splitLines[0]
+
+        while len(currentLine) > maxLineLength:
+            lines.append(currentLine[:maxLineLength].strip())
+            currentLine = currentLine[maxLineLength:]
+        else:
+            testLine = currentLine +  " " + next
+
+            if len(testLine) > maxLineLength:
+                lines.append(currentLine.strip())
+
+                while len(next) > maxLineLength:
+                    lines.append(next[:maxLineLength].strip())
+                    next = next[maxLineLength:]
+                else:
+                    cur = next
+                    currentLine = next
+            else:
+                currentLine = testLine
+                cur = next
+        
+        
+    else:
+        while len(currentLine) > maxLineLength:
+            lines.append(currentLine[:maxLineLength].strip())
+            currentLine = currentLine[maxLineLength:]
+        else:
+            lines.append(currentLine.strip())
+    
+    y -= (len(lines)*sep)/4 
+    for i in range(len(lines)):
+        line = lines[i]
+
+        text_in_box(surface, line, font,tc,x,y+i*sep,l,h)
+
 # darw card in the top right
 def drawCard(surface, property, chanceText):
     lfont = pygame.font.Font(resource_path("font.ttf"),10)
     
 
     if(property["type"] == PROPERTY):
+        surface.fill((255, 255, 255), rect = [13*card_breadth, 0, box_width, 2*card_length])
         surface.fill(property["set"], rect = [13*card_breadth, 0, box_width, .25*card_length])
         pygame.draw.rect(surface, black, [13*card_breadth, 0, box_width, 2*card_length], 2)
         text_in_box(surface, property["name"], lfont, black, 13*card_breadth, 0, box_width, .25*card_length)
@@ -89,6 +137,7 @@ def drawCard(surface, property, chanceText):
         text_in_box(surface, f"Houses cost: ${property['buildCost']} each", lfont, black, 13*card_breadth, 1.5*card_length+20, box_width, text_height)
         text_in_box(surface, f"Hotels, ${property['buildCost']} plus 4 houses", lfont, black, 13*card_breadth, 1.7*card_length+20, box_width, text_height)
     if(property['type'] == RAIL):
+        surface.fill((255, 255, 255), rect = [13*card_breadth, 0, box_width, 2*card_length])
         surface.fill(black, rect = [13*card_breadth, 0, box_width, .25*card_length])
         pygame.draw.rect(surface, black, [13*card_breadth, 0, box_width, 2*card_length], 2)
         text_in_box(surface, property['name'], lfont, (255, 255, 255), 13*card_breadth, 0, box_width, .25*card_length)
@@ -99,6 +148,7 @@ def drawCard(surface, property, chanceText):
         text_in_box(surface, f"If 4 R.R's are owned: {' '*(18-len(str(property['rent'][3])))}${property['rent'][3]}", lfont, black, 13*card_breadth, .9*card_length+20, box_width, text_height)
         text_in_box(surface, f"Mortgage value: ${property['mortgageVal']}", lfont, black, 13*card_breadth, 1.3*card_length+20, box_width, text_height)
     if(property['type'] == UTILITY):
+        surface.fill((255, 255, 255), rect = [13*card_breadth, 0, box_width, 2*card_length])
         surface.fill(black, rect = [13*card_breadth, 0, box_width, .25*card_length])
         pygame.draw.rect(surface, black, [13*card_breadth, 0, box_width, 2*card_length], 2)
         text_in_box(surface, property['name'], lfont, (255, 255, 255), 13*card_breadth, 0, box_width, .25*card_length)
@@ -282,11 +332,13 @@ def drawTradeWindowThirdParty(surface, tradeData, p1Money, p2Money, mortgagedPro
     properties1 = tradeData["properties1"]
     selectedProperties1 = tradeData["selectedProperties1"]
     money1 = tradeData["money1"]
+    nw1 = tradeData["nw1"]
 
     player2 = tradeData["p2name"]
     properties2 = tradeData["properties2"]
     selectedProperties2 = tradeData["selectedProperties2"]
     money2 = tradeData["money2"]
+    nw2 = tradeData["nw2"]
 
     money = [str(money1), str(money2)]
     currentMoney = [p1Money, p2Money]
@@ -303,11 +355,14 @@ def drawTradeWindowThirdParty(surface, tradeData, p1Money, p2Money, mortgagedPro
     textInPos(surface, "Money: ", lfont2, black, card_length + 30, buttonWindowTop + 2*card_length + 50)
     textInPos(surface, "$" + str(money1), lfont2, black, 1.75*card_length , buttonWindowTop + 2*card_length + 50)
     drawPlayerProperties(surface, properties1, mortgagedProperties, card_length + 30, buttonWindowTop + 3.5*card_length, miniBoxWidth, selectedProperties1, [-1, -1])
+    textInPos(surface, "Trade value: $" + str(nw1), lfont2, black, card_length + 30, buttonWindowTop + 3.5*card_length)
+            
 
     text_in_box(surface, str(player2), lfont, black, card_length + 368, buttonWindowTop + 2*card_length, miniBoxWidth * 10, 50)
     textInPos(surface, "Money: ", lfont2, black, card_length + 368, buttonWindowTop + 2*card_length + 50)
     textInPos(surface, "$" + str(money2), lfont2, black, 1.5*card_length+ 370, buttonWindowTop + 2*card_length + 50)
     drawPlayerProperties(surface, properties2, mortgagedProperties, card_length + 368, buttonWindowTop + 3.5*card_length, miniBoxWidth, selectedProperties2, [-1, -1])
+    textInPos(surface, "Trade value: $" + str(nw2), lfont2, black, card_length + 368, buttonWindowTop + 3.5*card_length)
 
 # trade window
 def drawTradeWindow(surface, tradeData, myId, p1Money, p2Money, sock, mortgagedProperties):
@@ -316,12 +371,14 @@ def drawTradeWindow(surface, tradeData, myId, p1Money, p2Money, sock, mortgagedP
     properties1 = tradeData["properties1"]
     selectedProperties1 = tradeData["selectedProperties1"]
     money1 = tradeData["money1"]
+    nw1 = tradeData["nw1"]
 
     p2id = tradeData["player2"]
     player2 = tradeData["p2name"]
     properties2 = tradeData["properties2"]
     selectedProperties2 = tradeData["selectedProperties2"]
     money2 = tradeData["money2"]
+    nw2 = tradeData["nw2"]
 
     money = [str(money1), str(money2)]
     currentMoney = [p1Money, p2Money]
@@ -344,6 +401,7 @@ def drawTradeWindow(surface, tradeData, myId, p1Money, p2Money, sock, mortgagedP
         pygame.draw.rect(surface, black, [1.75*card_length , buttonWindowTop + 2*card_length + 47.5, miniBoxWidth*3, miniBoxWidth], 1)
         textInPos(surface, "$" + money[0], lfont2, black, 1.75*card_length , buttonWindowTop + 2*card_length + 50)
         drawPlayerProperties(surface, properties1, mortgagedProperties, card_length + 30, buttonWindowTop + 3.5*card_length, miniBoxWidth, selectedProperties1, [-1, -1])
+        
 
         text_in_box(surface, "Them", lfont, black, card_length + 368, buttonWindowTop + 2*card_length, miniBoxWidth * 10, 50)
         textInPos(surface, "Money: ", lfont2, black, card_length + 368, buttonWindowTop + 2*card_length + 50)
@@ -351,17 +409,21 @@ def drawTradeWindow(surface, tradeData, myId, p1Money, p2Money, sock, mortgagedP
         pygame.draw.rect(surface, black, [1.5*card_length + 370 , buttonWindowTop + 2*card_length + 47.5, miniBoxWidth*3, miniBoxWidth], 1)
         textInPos(surface, "$" + money[1], lfont2, black, 1.5*card_length+ 370, buttonWindowTop + 2*card_length + 50)
         drawPlayerProperties(surface, properties2, mortgagedProperties, card_length + 368, buttonWindowTop + 3.5*card_length, miniBoxWidth, selectedProperties2, [-1, -1])
+        
 
         if tradeData['type'] != "tradeSend":
-            pygame.draw.rect(surface, black, [card_length + 30, buttonWindowTop + 3.5*card_length, 2*buttonWidth, buttonHeight/3], 2)
-            text_in_box(surface, "Send offer", lfont, black, card_length + 30, buttonWindowTop + 3.5*card_length, 2*buttonWidth, buttonHeight/3)
+            pygame.draw.rect(surface, black, [card_length + 30, buttonWindowTop + 4*card_length, 2*buttonWidth, buttonHeight/3], 2)
+            text_in_box(surface, "Send offer", lfont, black, card_length + 30, buttonWindowTop + 4*card_length, 2*buttonWidth, buttonHeight/3)
 
-            pygame.draw.rect(surface, black, [card_length + 30 + 2*buttonWidth + 10, buttonWindowTop + 3.5*card_length, 2*buttonWidth, buttonHeight/3], 2)
-            text_in_box(surface, "Cancel", lfont, black, card_length + 30 + 2*buttonWidth + 10, buttonWindowTop + 3.5*card_length, 2*buttonWidth, buttonHeight/3)
+            pygame.draw.rect(surface, black, [card_length + 30 + 2*buttonWidth + 10, buttonWindowTop + 4*card_length, 2*buttonWidth, buttonHeight/3], 2)
+            text_in_box(surface, "Cancel", lfont, black, card_length + 30 + 2*buttonWidth + 10, buttonWindowTop + 4*card_length, 2*buttonWidth, buttonHeight/3)
         else:
             done = True
 
         while not done:
+            pygame.draw.rect(surface, (255, 255, 255), [card_length + 30, buttonWindowTop + 3.5*card_length, 1.7*buttonWindowWidth, 30])
+            textInPos(surface, "Trade value: $" + str(nw1), lfont2, black, card_length + 30, buttonWindowTop + 3.5*card_length)
+            textInPos(surface, "Trade value: $" + str(nw2), lfont2, black, card_length + 368, buttonWindowTop + 3.5*card_length)
             mouse = [-1, -1]
             for event in pygame.event.get():
                 if event.type == pygame.MOUSEBUTTONDOWN and pygame.mouse.get_pressed()[0]:
@@ -375,7 +437,7 @@ def drawTradeWindow(surface, tradeData, myId, p1Money, p2Money, sock, mortgagedP
                         playerChanging = 1
                         money[playerChanging] = ""
                     # send offer
-                    elif mouseInBox(mouse, card_length + 30, buttonWindowTop + 3.5*card_length, 2*buttonWidth, buttonHeight/3):
+                    elif mouseInBox(mouse, card_length + 30, buttonWindowTop + 4*card_length, 2*buttonWidth, buttonHeight/3):
                         if playerChanging is not None and int(money[playerChanging]) > currentMoney[playerChanging]:
                             money[playerChanging] = str(currentMoney[playerChanging])
                         if playerChanging is not None and money[playerChanging] == "": money[playerChanging] = "0"
@@ -384,20 +446,22 @@ def drawTradeWindow(surface, tradeData, myId, p1Money, p2Money, sock, mortgagedP
                         sock.sendall(bytes(send_data, encoding = "utf-8"))
                         done = True
                     # cancel trade
-                    elif mouseInBox(mouse, card_length + 30 + 2*buttonWidth + 10, buttonWindowTop + 3.5*card_length, 2*buttonWidth, buttonHeight /3):
+                    elif mouseInBox(mouse, card_length + 30 + 2*buttonWidth + 10, buttonWindowTop + 4*card_length, 2*buttonWidth, buttonHeight /3):
                         send_data = {'type': 'tradeCancel', 'player1': p1id, 'player2': p2id}
                         send_data = json.dumps(send_data)
                         sock.sendall(bytes(send_data, encoding = "utf-8"))
                         done = True
                     # unfocus money changing window
                     else:
+                        if playerChanging is not None and money[playerChanging] == "": money[playerChanging] = "0"
                         if playerChanging is not None and int(money[playerChanging]) > currentMoney[playerChanging]:
                             money[playerChanging] = str(currentMoney[playerChanging])
-                        if playerChanging is not None and money[playerChanging] == "": money[playerChanging] = "0"
+                        
                         playerChanging = None
                         send_data = {'type': 'tradeUpdate', 'player1': p1id, 'player2': p2id, 'money1': money[0], 'money2': money[1], "selectedProperties1": selectedProperties1, "selectedProperties2": selectedProperties2}
                         send_data = json.dumps(send_data)
                         sock.sendall(bytes(send_data, encoding = "utf-8"))
+                        done = True
 
                 if event.type == pygame.KEYDOWN and playerChanging is not None:
                     if event.key == pygame.K_RETURN:
@@ -451,20 +515,22 @@ def drawTradeWindow(surface, tradeData, myId, p1Money, p2Money, sock, mortgagedP
         textInPos(surface, "Money: ", lfont2, black, card_length + 30, buttonWindowTop + 2*card_length + 50)
         textInPos(surface, "$" + str(money2), lfont2, black, 1.75*card_length , buttonWindowTop + 2*card_length + 50)
         drawPlayerProperties(surface, properties2, mortgagedProperties, card_length + 30, buttonWindowTop + 3.5*card_length, miniBoxWidth, selectedProperties2, [-1, -1])
+        textInPos(surface, "Trade value: $" + str(nw2), lfont2, black, card_length + 30, buttonWindowTop + 3.5*card_length)
 
         text_in_box(surface, "Them", lfont, black, card_length + 368, buttonWindowTop + 2*card_length, miniBoxWidth * 10, 50)
         textInPos(surface, "Money: ", lfont2, black, card_length + 368, buttonWindowTop + 2*card_length + 50)
         textInPos(surface, "$" + str(money1), lfont2, black, 1.5*card_length+ 370, buttonWindowTop + 2*card_length + 50)
         drawPlayerProperties(surface, properties1, mortgagedProperties, card_length + 368, buttonWindowTop + 3.5*card_length, miniBoxWidth, selectedProperties1, [-1, -1])
+        textInPos(surface, "Trade value: $" + str(nw1), lfont2, black, card_length + 368, buttonWindowTop + 3.5*card_length)
 
         if tradeData['type'] == "tradeSend":
             done = False
 
-            pygame.draw.rect(surface, black, [card_length + 30, buttonWindowTop + 3.5*card_length, 2*buttonWidth, buttonHeight/3], 2)
-            text_in_box(surface, "Accept offer", lfont, black, card_length + 30, buttonWindowTop + 3.5*card_length, 2*buttonWidth, buttonHeight/3)
+            pygame.draw.rect(surface, black, [card_length + 30, buttonWindowTop + 4*card_length, 2*buttonWidth, buttonHeight/3], 2)
+            text_in_box(surface, "Accept offer", lfont, black, card_length + 30, buttonWindowTop + 4*card_length, 2*buttonWidth, buttonHeight/3)
 
-            pygame.draw.rect(surface, black, [card_length + 30 + 2*buttonWidth + 10, buttonWindowTop + 3.5*card_length, 2*buttonWidth, buttonHeight/3], 2)
-            text_in_box(surface, "Decline offer", lfont, black, card_length + 30 + 2*buttonWidth + 10, buttonWindowTop + 3.5*card_length, 2*buttonWidth, buttonHeight/3)
+            pygame.draw.rect(surface, black, [card_length + 30 + 2*buttonWidth + 10, buttonWindowTop + 4*card_length, 2*buttonWidth, buttonHeight/3], 2)
+            text_in_box(surface, "Decline offer", lfont, black, card_length + 30 + 2*buttonWidth + 10, buttonWindowTop + 4*card_length, 2*buttonWidth, buttonHeight/3)
 
             while not done:
                 for event in pygame.event.get():
@@ -472,13 +538,13 @@ def drawTradeWindow(surface, tradeData, myId, p1Money, p2Money, sock, mortgagedP
                         mouse = pygame.mouse.get_pos()
                         
                         # accept offer
-                        if mouseInBox(mouse, card_length + 30,buttonWindowTop + 3.5*card_length, 2*buttonWidth, buttonHeight/3):
+                        if mouseInBox(mouse, card_length + 30,buttonWindowTop + 4*card_length, 2*buttonWidth, buttonHeight/3):
                             send_data = {'type': 'tradeAccept', 'player1': p1id, 'player2': p2id, 'money1': money[0], 'money2': money[1], "selectedProperties1": selectedProperties1, "selectedProperties2": selectedProperties2}
                             send_data = json.dumps(send_data)
                             sock.sendall(bytes(send_data, encoding = "utf-8"))
                             done = True
                         # decline offer
-                        elif mouseInBox(mouse, card_length + 30 + 2*buttonWidth + 10, buttonWindowTop + 3.5*card_length,  2*buttonWidth, buttonHeight /3):
+                        elif mouseInBox(mouse, card_length + 30 + 2*buttonWidth + 10, buttonWindowTop + 4*card_length,  2*buttonWidth, buttonHeight /3):
                             send_data = {'type': 'tradeCancel', 'player1': p1id, 'player2': p2id}
                             send_data = json.dumps(send_data)
                             sock.sendall(bytes(send_data, encoding = "utf-8"))
@@ -491,7 +557,7 @@ def drawTradeWindow(surface, tradeData, myId, p1Money, p2Money, sock, mortgagedP
 # draw message if player can't end because they don't have enough money
 def drawCantEndText(surface):
     lfont = pygame.font.Font(resource_path("font.ttf"),20)
-    chanceTextSplit(surface, "You cannot end your turn until you mortgage property or declare bankruptcy", 50, 15, lfont, black, buttonWindowLeft, buttonWindowTop + buttonWindowLength, buttonWindowWidth, buttonWindowLength)
+    chanceTextSplit(surface, "You cannot end your turn until you mortgage property or declare bankruptcy", 50, 15, lfont, black, buttonWindowLeft, buttonWindowTop + buttonWindowLength - 20, buttonWindowWidth, buttonWindowLength)
 
 # draw roll/end turn buttons
 def drawButtons(surface, canRoll, canEnd):
@@ -517,6 +583,8 @@ def drawBuildMortgage(surface, propName, buyType, mortType, numHouses, buildCost
     lfont = pygame.font.Font(resource_path("font.ttf"),13)
 
     pygame.draw.rect(surface, black, [buttonWindowLeft, buttonWindowTop + buttonWindowLength + 1.5*card_length, buttonWindowWidth, buttonWindowLength], 2)
+    pygame.draw.rect(surface, black, [buttonWindowLeft + 5, buttonWindowTop + buttonWindowLength + 1.63 * card_length, buttonWindowWidth - 10, 30], 2)
+    pygame.draw.rect(surface, blue, [buttonWindowLeft + 7.5, buttonWindowTop + buttonWindowLength + 1.63 * card_length + 2.5, buttonWindowWidth - 16, 24], 2)
     text_in_box(surface, propName, lfont, black, buttonWindowLeft, buttonWindowTop + buttonWindowLength + 1.25*card_length, buttonWindowWidth, buttonWindowLength)
     if (numHouses > 0 and numHouses < 5) or buyType is not None:
         text_in_box(surface, "Houses: " + str(numHouses) , lfont, black, buttonWindowLeft, buttonWindowTop + buttonWindowLength + 1.35*card_length, buttonWindowWidth, buttonWindowLength)

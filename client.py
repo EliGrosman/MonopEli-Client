@@ -21,7 +21,7 @@ def resource_path(relative_path):
     # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = sys._MEIPASS
     except Exception:
-        base_path = os.path.abspath(".")
+        base_path = os.path.abspath("./assets")
 
     return os.path.join(base_path, relative_path)
 
@@ -93,6 +93,10 @@ jail = False
 password = ""
 simualting = False
 
+drawProp = None
+tempRename = None
+tempRenameId = None
+
 # recieve data sent by server
 def receive_data():
     global turn,connection_established, player_id, players, position, actions, buydata, myId, canEnd, game_over, winner, rolled, propertyData, buildingMortgage, tempPropID, tempHouses, tempType, tempIsMortgaged, tempMortVal, houseData, acknowledgedChance, chanceData, totalOwed, acknowledgedOwed, totalHouses, totalHotels, tradeData, mortgageData, jail, finishedBuy, simulating
@@ -114,16 +118,22 @@ def receive_data():
                 while(type(data_in) == type("a")):
                     data_in = json.loads(data_in)
                 # when player connects
+                if data_in["type"] == "close":
+                    sock.close()
+                    break
                 if(data_in['type'] == "playerinfo"):
                     player_id = data_in['player']
                     myId = player_id
                 # whenever game updates
                 elif(data_in['type'] == "gamedata"):                 
                     players = data_in['players']
+                    rolled = players[myId - 1]["rolled"]
                     propertyData = data_in['properties']
                     totalOwed = data_in['totalOwed']
                     mortgageData = data_in['mortgageData']
                     jail = players[myId - 1]['jail']
+
+                    drawProp = None
 
                     if totalOwed > 0:
                         acknowledgedOwed = False
@@ -160,12 +170,8 @@ def receive_data():
 
                     actions = data_in["actions"]
                     houseData = data_in["houseData"]
-                    if data_in["didRoll"]:
-                        rolled = True
-                    else:
-                        rolled = False
 
-                    if rolled and data_in["doubles"] and players[myId - 1]['money'] >= 0:
+                    if data_in["doubles"] and players[myId - 1]['money'] >= 0:
                         rolled = False
                         canEnd = False
                     if data_in["simulating"]:
@@ -206,7 +212,7 @@ def receive_data():
                     tradeData = data_in
         except Exception as e:
             print(e)
-            print('Remote connection terminated')
+            # print('Remote connection terminated')
             connection_established=False
             grid.game_over=True
 
@@ -214,10 +220,12 @@ def receive_data():
 # login
 changingName = True
 changingIP = False
+failedConnect = False
 while not running:
     
     for event in pygame.event.get():
         if event.type ==pygame.QUIT:
+            sock.close()
             pygame.display.quit()
             pygame.quit()
             sys.exit()
@@ -248,7 +256,7 @@ while not running:
 
         if event.type == pygame.MOUSEBUTTONDOWN and pygame.mouse.get_pressed()[0]:
             mouse = pygame.mouse.get_pos()
-            if mouseInBox(mouse, 100, 380, 100, 75):
+            if mouseInBox(mouse, 100, 380, 100, 75) and len(password) > 0:
                 try:
                     sock.connect((HOST,PORT))
                     connection_established=True
@@ -258,9 +266,7 @@ while not running:
                     running = True
                     create_thread(receive_data)
                 except :
-                    pygame.display.quit()
-                    pygame.quit()
-                    sys.exit() 
+                    failedConnect = True
             if mouseInBox(mouse, 100, 250, 600, 100):
                 changingIP = True
                 changingName = False
@@ -270,7 +276,7 @@ while not running:
 
     
     surface.fill((255,255,255))
-    login.draw(surface)
+    login.draw(surface, failedConnect, changingName, changingIP)
 
     lfont = pygame.font.Font(resource_path("font.ttf"), 20)
     textInPos(surface, password, lfont, black, 110, 140)
@@ -291,10 +297,16 @@ while running:
         else:
             canEnd = True
 
+    if tempRenameId is not None:
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_BACKSPACE]:
+            tempRename = tempRename[:-1]
+
     # get pygame events
     for event in pygame.event.get():
         # safely close game
         if event.type ==pygame.QUIT:
+            sock.close()
             running=False
             pygame.display.quit()
             pygame.quit()
@@ -306,8 +318,13 @@ while running:
                 if turn:
                     mouse = pygame.mouse.get_pos()
 
+                    if tempRename is not None:
+                        send_data = {'type': 'rename', 'propId': tempRenameId, "newname": tempRename}
+                        send_data = json.dumps(send_data)
+                        sock.sendall(bytes(send_data, encoding = "utf-8"))
+
                     # roll
-                    if not rolled and acknowledgedChance and acknowledgedOwed:
+                    if not rolled and acknowledgedChance and acknowledgedOwed and players[myId - 1]['money'] > 0:
                         if mouse[0] >= buttonWindowLeft + buttonMargin and mouse[0] <= buttonWindowLeft + buttonMargin + buttonWidth and mouse[1] >= buttonWindowTop + buttonMargin and mouse[1] <= buttonWindowTop + buttonMargin + buttonHeight: 
                             send_data = {'type': 'roll', 'id': player_id}
                             send_data = json.dumps(send_data)
@@ -324,6 +341,8 @@ while running:
                             canEnd = False
                             rolled = False
                             buildingMortgage = None
+                            tempRename = None
+                            tempRenameId = None
                             canBuyMortgage = False
                             declaringBankruptcy = False
                             tempHouses = 0
@@ -379,6 +398,8 @@ while running:
                                 if canBuyMortgage:
                                     tempCanBuild = True
                                     buildingMortgage = propertyData[prop.id]['name']
+                                    tempRename = buildingMortgage
+                                    tempRenameId = prop.id
                                     if prop.type == PROPERTY:
                                         tempHouses = propertyData[prop.id]['houses']
                                         tempBuildPrice = prop.buildCost
@@ -454,19 +475,38 @@ while running:
                                 if mouse[1] >= tops[i] + 55 and mouse[1] <= tops[i] + 55 + buttonHeight-10:
                                     if myId == i + 1:
                                         # bankrupcy
-                                        print("bankrupcy " + str(i + 1))
+                                        # print("bankrupcy " + str(i + 1))
                                         declaringBankruptcy = True
                                     else:
                                         # trade
-                                        print("trade " + str(i + 1))
+                                        # print("trade " + str(i + 1))
                                         #trading = True
                                         # tradingWith = i + 1
 
                                         send_data = {'type': 'trade', 'player': myId - 1, 'with': i}
                                         send_data = json.dumps(send_data)
                                         sock.sendall(bytes(send_data, encoding = "utf-8"))
-                                     
-        
+
+        if event.type == pygame.KEYDOWN and tempRenameId is not None:
+            if event.key == pygame.K_RETURN:
+                try:
+                    send_data = {'type': 'rename', 'propId': tempRenameId, "newname": tempRename}
+                    send_data = json.dumps(send_data)
+                    sock.sendall(bytes(send_data, encoding = "utf-8"))
+                    create_thread(receive_data)
+                except :
+                    pass
+            elif event.key != pygame.K_BACKSPACE:
+                char = event.unicode
+                if (char in ascii_letters or char in digits or char == " ") and len(tempRename) <= 30:
+                    tempRename += char
+
+            
+
+        mouse = pygame.mouse.get_pos()              
+        for prop in properties:
+            if mouseInBox(mouse, prop.left, prop.top, prop.width, prop.height):
+                drawProp = prop.id
         if event.type == pygame.KEYDOWN:
             if event.key ==pygame.K_ESCAPE:
                 running=False
@@ -480,6 +520,9 @@ while running:
     # draw card for landed on property in top right
     if len(propertyData) > 0:
         drawCard(surface, propertyData[position], chanceData["chanceText"])
+    
+    if drawProp and len(propertyData) > 0:
+        drawCard(surface, propertyData[drawProp], "")
 
     # if player can buy a property, display the buy window
     if not finishedBuy and not game_over and acknowledgedChance and acknowledgedOwed and not jail and not simulating:
@@ -490,11 +533,15 @@ while running:
         drawBankruptcyWindow(surface)
 
     # if player clicked trade, draw trade window
-    if tradeData["player1"] is not None and rolled and not game_over and acknowledgedChance and acknowledgedOwed and not jail and not simulating:
+    if tradeData["player1"] is not None and(rolled or players[myId - 1]['money'] < 0) and not game_over and acknowledgedChance and acknowledgedOwed and not jail and not simulating:
         if myId - 1 == tradeData["player1"] or myId - 1 == tradeData["player2"]:
             buildingMortgage = None
             drawTradeWindow(surface, tradeData, myId - 1, players[myId-1]["money"], players[tradeData["player2"]]["money"], sock, mortgageData)
-        else:
+
+    if tradeData["player1"] is not None and myId - 1 == tradeData["player2"]:
+        drawTradeWindow(surface, tradeData, myId - 1, players[myId-1]["money"], players[tradeData["player2"]]["money"], sock, mortgageData)
+
+    if tradeData["player1"] is not None and (myId - 1 != tradeData["player1"] and myId - 1 != tradeData["player2"]):
             drawTradeWindowThirdParty(surface, tradeData, players[tradeData["player1"]]["money"], players[tradeData["player2"]]["money"], mortgageData)
 
     # if game over
@@ -526,7 +573,7 @@ while running:
             mortType = "Unmortgage property"
             mortVal = int(-1.1*tempMortVal)
         
-        drawBuildMortgage(surface, buildingMortgage, buyType, mortType, tempHouses, tempBuildPrice, mortVal)
+        drawBuildMortgage(surface, tempRename, buyType, mortType, tempHouses, tempBuildPrice, mortVal)
     
     # if landed on chance and didn't dismiss window, draw chance card
     if chanceData["chanceText"] is not None and not acknowledgedChance and not game_over and not simulating:

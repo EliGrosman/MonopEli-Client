@@ -8,7 +8,7 @@ def resource_path(relative_path):
     # PyInstaller creates a temp folder and stores path in _MEIPASS
         base_path = sys._MEIPASS
     except Exception:
-        base_path = os.path.abspath(".")
+        base_path = os.path.abspath("./assets")
 
     return os.path.join(base_path, relative_path)
 
@@ -210,7 +210,7 @@ class Property():
             pygame.draw.line(surface, (140, 0, 0), (self.left, self.top), (self.left + self.width, self.top + self.height), 3)
             pygame.draw.line(surface, (140, 0, 0), (self.left, self.top + self.height), (self.left + self.width, self.top), 3)
 
-        chanceTextSplit(surface, name, self.textLength, 10, lfont, black, self.textX, self.textY, self.textWidth, self.textHeight)
+        propTextSplit(surface, name, self.textLength, 10, lfont, black, self.textX, self.textY, self.textWidth, self.textHeight)
 
         
     def drawHouses(self, surface, houses):
@@ -423,7 +423,7 @@ class special_cards():
         if mortgaged:
             pygame.draw.line(surface, (140, 0, 0), (self.left, self.top), (self.left + self.width, self.top + self.height), 3)
             pygame.draw.line(surface, (140, 0, 0), (self.left, self.top + self.height), (self.left + self.width, self.top), 3)
-        chanceTextSplit(surface, name, self.textLength, 10, lfont, black, self.textX, self.textY, self.textWidth, self.textHeight)
+        propTextSplit(surface, name, self.textLength, 10, lfont, black, self.textX, self.textY, self.textWidth, self.textHeight)
         
 class extra_card():
     def __init__(self,name,id,type,locx,locy,x1,y1,x2,y2):
@@ -566,5 +566,5 @@ class extra_card():
         lfont = pygame.font.Font(resource_path("font.ttf"),10)
     
         pygame.draw.rect(surface, black, [self.left, self.top, self.width, self.height], 1)
-        chanceTextSplit(surface, name, self.textLength, 10, lfont, black, self.textX, self.textY, self.textWidth, self.textHeight)
+        propTextSplit(surface, name, self.textLength, 10, lfont, black, self.textX, self.textY, self.textWidth, self.textHeight)
 
