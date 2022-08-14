@@ -9,11 +9,9 @@ from drawing_functions import drawBankruptcyWindow, drawCard, drawBuyWindow, dra
 from constants import *
 from string import ascii_letters, digits
 from property_info import properties 
+import time
 
-
-# CHANGE THESE
-
-HOST='127.0.0.1'
+HOST=''
 PORT=9009
 
 def resource_path(relative_path):
@@ -96,6 +94,10 @@ simualting = False
 drawProp = None
 tempRename = None
 tempRenameId = None
+
+if os.path.exists('./assets/pastIP.txt'):
+    with open('./assets/pastIP.txt', 'r') as f:
+        HOST = f.read()
 
 # recieve data sent by server
 def receive_data():
@@ -239,9 +241,11 @@ while not running:
                     send_data = {'password': password}
                     send_data = json.dumps(send_data)
                     sock.sendall(bytes(send_data, encoding = "utf-8"))
+                    with open('./assets/pastIP.txt', 'w') as f:
+                        f.write(HOST)
                     create_thread(receive_data)
                 except :
-                    pass
+                    failedConnect = True
             elif event.key == pygame.K_BACKSPACE:
                 if changingName:
                     password = password[:-1]
@@ -264,6 +268,8 @@ while not running:
                     send_data = json.dumps(send_data)
                     sock.sendall(bytes(send_data, encoding = "utf-8"))
                     running = True
+                    with open('./assets/pastIP.txt', 'w') as f:
+                        f.write(HOST)
                     create_thread(receive_data)
                 except :
                     failedConnect = True
@@ -286,7 +292,7 @@ while not running:
     clock.tick(30)
 
 
-
+pressed = False
 # main game loop
 while running:
     # player money < 0 when they land on a space and can't afford to pay
@@ -299,8 +305,16 @@ while running:
 
     if tempRenameId is not None:
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_BACKSPACE]:
+        if keys[pygame.K_BACKSPACE] and not pressed:
             tempRename = tempRename[:-1]
+            time.sleep(0.15)
+            keys2 = pygame.key.get_pressed()
+            if keys2[pygame.K_BACKSPACE]:
+                pressed = True
+        elif keys[pygame.K_BACKSPACE] and pressed:
+            tempRename = tempRename[:-1]
+        else:
+            pressed = False
 
     # get pygame events
     for event in pygame.event.get():
