@@ -99,6 +99,10 @@ if os.path.exists('./assets/pastIP.txt'):
     with open('./assets/pastIP.txt', 'r') as f:
         HOST = f.read()
 
+if os.path.exists('./assets/pastName.txt'):
+    with open('./assets/pastName.txt', 'r') as f:
+        password = f.read()
+
 # recieve data sent by server
 def receive_data():
     global turn,connection_established, player_id, players, position, actions, buydata, myId, canEnd, game_over, winner, rolled, propertyData, buildingMortgage, tempPropID, tempHouses, tempType, tempIsMortgaged, tempMortVal, houseData, acknowledgedChance, chanceData, totalOwed, acknowledgedOwed, totalHouses, totalHotels, tradeData, mortgageData, jail, finishedBuy, simulating
@@ -243,9 +247,18 @@ while not running:
                     sock.sendall(bytes(send_data, encoding = "utf-8"))
                     with open('./assets/pastIP.txt', 'w') as f:
                         f.write(HOST)
+                    with open('./assets/pastName.txt', 'w') as f:
+                        f.write(password)
                     create_thread(receive_data)
                 except :
                     failedConnect = True
+            elif event.key == pygame.K_TAB:
+                if changingName:
+                    changingName = False
+                    changingIP = True
+                elif changingIP:
+                    changingName = True
+                    changingIP = False
             elif event.key == pygame.K_BACKSPACE:
                 if changingName:
                     password = password[:-1]
@@ -270,6 +283,8 @@ while not running:
                     running = True
                     with open('./assets/pastIP.txt', 'w') as f:
                         f.write(HOST)
+                    with open('./assets/pastName.txt', 'w') as f:
+                        f.write(password)
                     create_thread(receive_data)
                 except :
                     failedConnect = True
