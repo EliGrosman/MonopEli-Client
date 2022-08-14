@@ -95,12 +95,15 @@ drawProp = None
 tempRename = None
 tempRenameId = None
 
-if os.path.exists('./assets/pastIP.txt'):
-    with open('./assets/pastIP.txt', 'r') as f:
+if not os.path.exists('./savedInfo/'):
+    os.makedirs('./savedInfo')
+
+if os.path.exists('./savedInfo/pastIP.txt'):
+    with open('./savedInfo/pastIP.txt', 'r') as f:
         HOST = f.read()
 
-if os.path.exists('./assets/pastName.txt'):
-    with open('./assets/pastName.txt', 'r') as f:
+if os.path.exists('./savedInfo/pastName.txt'):
+    with open('./savedInfo/pastName.txt', 'r') as f:
         password = f.read()
 
 # recieve data sent by server
@@ -245,9 +248,9 @@ while not running:
                     send_data = {'password': password}
                     send_data = json.dumps(send_data)
                     sock.sendall(bytes(send_data, encoding = "utf-8"))
-                    with open('./assets/pastIP.txt', 'w') as f:
+                    with open('./savedInfo/pastIP.txt', 'w') as f:
                         f.write(HOST)
-                    with open('./assets/pastName.txt', 'w') as f:
+                    with open('./savedInfo/pastName.txt', 'w') as f:
                         f.write(password)
                     create_thread(receive_data)
                 except :
@@ -281,9 +284,9 @@ while not running:
                     send_data = json.dumps(send_data)
                     sock.sendall(bytes(send_data, encoding = "utf-8"))
                     running = True
-                    with open('./assets/pastIP.txt', 'w') as f:
+                    with open('./savedInfo/pastIP.txt', 'w') as f:
                         f.write(HOST)
-                    with open('./assets/pastName.txt', 'w') as f:
+                    with open('./savedInfo/pastName.txt', 'w') as f:
                         f.write(password)
                     create_thread(receive_data)
                 except :
@@ -353,13 +356,15 @@ while running:
                         sock.sendall(bytes(send_data, encoding = "utf-8"))
 
                     # roll
-                    if not rolled and acknowledgedChance and acknowledgedOwed and players[myId - 1]['money'] > 0:
+                    if not rolled and acknowledgedChance and acknowledgedOwed and players[myId - 1]['money'] > 0 and not players[myId - 1]["jail"]:
                         if mouse[0] >= buttonWindowLeft + buttonMargin and mouse[0] <= buttonWindowLeft + buttonMargin + buttonWidth and mouse[1] >= buttonWindowTop + buttonMargin and mouse[1] <= buttonWindowTop + buttonMargin + buttonHeight: 
                             send_data = {'type': 'roll', 'id': player_id}
                             send_data = json.dumps(send_data)
                             sock.sendall(bytes(send_data, encoding = "utf-8"))
                             canEnd = True
                             rolled = True
+                            drawProp = None
+                            
                     # end turn
                     if canEnd and tradeData["player1"] is None:
                         if mouse[0] >= buttonWindowLeft + 2*buttonMargin + buttonWidth and mouse[0] <= buttonWindowLeft + 2*buttonMargin + 2*buttonWidth and mouse[1] >= buttonWindowTop + buttonMargin and mouse[1] <= buttonWindowTop + buttonMargin + buttonHeight: 
@@ -532,13 +537,15 @@ while running:
 
             
 
-        mouse = pygame.mouse.get_pos()              
-        for prop in properties:
-            if mouseInBox(mouse, prop.left, prop.top, prop.width, prop.height):
-                drawProp = prop.id
-        if event.type == pygame.KEYDOWN:
-            if event.key ==pygame.K_ESCAPE:
-                running=False
+        # hover over prop
+        mouse = pygame.mouse.get_pos()      
+        if acknowledgedChance and acknowledgedOwed and finishedBuy:       
+            for prop in properties:
+                if mouseInBox(mouse, prop.left, prop.top, prop.width, prop.height):
+                    drawProp = prop.id
+            if event.type == pygame.KEYDOWN:
+                if event.key ==pygame.K_ESCAPE:
+                    running=False
 
 
     # draw white background
