@@ -592,7 +592,7 @@ def drawBuildMortgage(surface, propName, buyType, mortType, numHouses, buildCost
         text_in_box(surface, "Hotels: 1", lfont, black, buttonWindowLeft, buttonWindowTop + buttonWindowLength + 1.35*card_length, buttonWindowWidth, buttonWindowLength)
 
     pygame.draw.rect(surface, black, [buttonWindowLeft + 5, buttonWindowTop + buttonWindowLength + 2.18*card_length, buttonWidth + 5, buttonHeight/3], 2)
-    text_in_box(surface, ("Buy " + str(buyType) if buyType is not None else "Cannot buy"), lfont, black, buttonWindowLeft + 5, buttonWindowTop + buttonWindowLength + 2.18*card_length, buttonWidth + 5, buttonHeight/3)
+    text_in_box(surface, ("Build " + str(buyType) if buyType is not None else "Cannot build"), lfont, black, buttonWindowLeft + 5, buttonWindowTop + buttonWindowLength + 2.18*card_length, buttonWidth + 5, buttonHeight/3)
     if buyType is not None:
         text_in_box(surface, "(-" + str(buildCost) + ")" , lfont, black, buttonWindowLeft + 5, buttonWindowTop + buttonWindowLength + 10 + 2.18*card_length, buttonWidth + 5, buttonHeight/3)
 
